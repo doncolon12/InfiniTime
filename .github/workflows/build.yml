@@ -1,19 +1,54 @@
 name: Build Firmware
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build:
+  build-firmware:
     runs-on: ubuntu-latest
+    env:
+      NRF5_SDK_VERSION: "17.1.0"  # Change if you need a different version
+      NRF5_SDK_FOLDER: "nrf5_sdk" # Folder to store the SDK
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential cmake git libsdl2-dev gcc-arm-none-eabi gdb-arm-none-eabi binutils-arm-none-eabi
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake git libsdl2-dev wget unzip gcc-arm-none-eabi
 
-      - name: Build Firmware
+      - name: Download nRF5 SDK
+        run: |
+          if [ ! -d "${{ env.NRF5_SDK_FOLDER }}" ]; then
+            wget -q https://www.nordicsemi.com/-/media/Software-and-other-downloads/SDK/nRF5/SDK_v${{ env.NRF5_SDK_VERSION }}/nRF5_SDK_v${{ env.NRF5_SDK_VERSION }}_ddddd.zip -O nrf5_sdk.zip
+            unzip nrf5_sdk.zip -d ${{ env.NRF5_SDK_FOLDER }}
+          fi
+
+      - name: Configure firmware build
         run: |
           mkdir -p build
           cd build
-          cmake .. -DARM_NONE_EABI_TOOLCHAIN_PATH=/usr/bin -DCMAKE_BUILD_TYPE=Release
-          make -j$(nproc)
+          cmake .. \
+            -DARM_NONE_EABI_TOOLCHAIN_PATH=/usr/bin \
+            -DNRF5_SDK_PATH=${{ github.workspace }}/${{ env.NRF5_SDK_FOLDER }}/nRF5_SDK_v${{ env.NRF5_SDK_VERSION }} \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build firmware
+        run: |
+          cd build
+          cmake --build . -- -j$(nproc)
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: InfiniTime-Firmware
+          path: build/src/pinetime-app-*.out
