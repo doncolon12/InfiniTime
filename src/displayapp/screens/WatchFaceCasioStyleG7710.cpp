@@ -24,6 +24,8 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(Controllers::DateTime& dateTi
                                                    Controllers::FS& filesystem)
   : currentDateTime {{}},
     batteryIcon(false),
+    // added new code: "label_time_seconds{nullptr}" to the initializer list
+    label_time_seconds{nullptr},   // ← added here
     dateTimeController {dateTimeController},
     batteryController {batteryController},
     bleController {bleController},
