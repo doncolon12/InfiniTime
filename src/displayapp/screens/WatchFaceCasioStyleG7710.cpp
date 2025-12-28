@@ -127,12 +127,22 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(Controllers::DateTime& dateTi
   lv_line_set_points(line_date, line_date_points, 3);
   lv_obj_add_style(line_date, LV_LINE_PART_MAIN, &style_line);
   lv_obj_align(line_date, nullptr, LV_ALIGN_IN_TOP_RIGHT, 0, 100);
-
-  
+ 
+  // --- Existing main time label (HH:MM) ---
+  label_time = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_color(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, color_text);
   lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, font_segment115);
   lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_CENTER, 0, 40);
+    
+  // --- NEW: small seconds label (SS) to the right of HH:MM ---
+  label_time_seconds = lv_label_create(lv_scr_act(), nullptr);
+  lv_obj_set_style_local_text_color(label_time_seconds, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, color_text);
+  lv_obj_set_style_local_text_font(label_time_seconds, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, font_segment40);
+  
+  // Position seconds slightly to the right of the main label
+  lv_obj_align(label_time_seconds, label_time, LV_ALIGN_OUT_RIGHT_MID, 5, 0);
 
+    
   line_time = lv_line_create(lv_scr_act(), nullptr);
   lv_line_set_points(line_time, line_time_points, 3);
   lv_obj_add_style(line_time, LV_LINE_PART_MAIN, &style_line);
@@ -289,6 +299,7 @@ void WatchFaceCasioStyleG7710::Refresh() {
         // 12h mode: mmddyyyy, first DOW=Sunday;
         // old code: lv_label_set_text_fmt(label_date, "%3d-%2d", month, day);
         // new code: replace numeric month formatting (12-hour mode)
+        strftime(monthStr, sizeof(monthStr), "%b", tmTime);
         lv_label_set_text_fmt(label_date, "%s %02d", monthStr, day);
         weekNumberFormat = "%U"; // Replaced by the week number of the year as a decimal number [00,53]. The first Sunday of January is the
                                  // first day of week 1; days in the new year before this are in week 0. [ tm_year, tm_wday, tm_yday]
@@ -299,8 +310,7 @@ void WatchFaceCasioStyleG7710::Refresh() {
       tm* tmTime = std::localtime(&ttTime);
       // new code: "char monthStr[4];" and "strftime(monthStr, sizeof(monthStr), "%b", tmTime);" --> show abbreviated month name (using strftime, no lookup table)
       char monthStr[4];
-      strftime(monthStr, sizeof(monthStr), "%b", tmTime);
-
+      
       // TODO: When we start using C++20, use std::chrono::year::is_leap
       int daysInCurrentYear = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 366 : 365;
       uint16_t daysTillEndOfYearNumber = daysInCurrentYear - dayOfYear;
