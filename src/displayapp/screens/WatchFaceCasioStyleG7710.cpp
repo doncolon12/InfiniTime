@@ -24,31 +24,26 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(
     Controllers::HeartRateController& heartRateController,
     Controllers::MotionController& motionController,
     Controllers::FS& filesystem)
-  : batteryPercentRemaining {},
-    powerPresent {},
-    bleState {},
-    bleRadioEnabled {},
-    currentDateTime {},
-    stepCount {},
-    heartbeat {},
-    heartbeatRunning {},
-    notificationState {},
-    currentDate {},
-    batteryIcon(batteryController),
-    dateTimeController(dateTimeController),
-    batteryController(batteryController),
-    bleController(bleController),
-    notificatioManager(notificatioManager),
-    settingsController(settingsController),
-    heartRateController(heartRateController),
-    motionController(motionController),
-    taskRefresh(nullptr),
-    font_dot40(nullptr),
-    font_segment40(nullptr),
-    font_segment115(nullptr) {
-
-
-
+  : currentDateTime{{}},
+    batteryPercentRemaining{},
+    powerPresent{},
+    bleState{},
+    bleRadioEnabled{},
+    currentDate{},
+    stepCount{},
+    heartbeat{},
+    heartbeatRunning{},
+    notificationState{},
+    batteryIcon(false), // <-- Corrected to match BatteryIcon(bool)
+    label_time_seconds{nullptr},
+    dateTimeController{dateTimeController},
+    batteryController{batteryController},
+    bleController{bleController},
+    notificatioManager{notificatioManager},
+    settingsController{settingsController},
+    heartRateController{heartRateController},
+    motionController{motionController} {
+  
   lfs_file f = {};
   if (filesystem.FileOpen(&f, "/fonts/lv_font_dots_40.bin", LFS_O_RDONLY) >= 0) {
     filesystem.FileClose(&f);
@@ -64,6 +59,13 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(
     filesystem.FileClose(&f);
     font_segment115 = lv_font_load("F:/fonts/7segments_115.bin");
   }
+
+  // ... rest of constructor code remains unchanged ...
+
+  // In Refresh(), comment out unused 'day' variable
+  // uint8_t day = dateTimeController.Day();
+}
+
 
   // Battery and BLE icons
   label_battery_value = lv_label_create(lv_scr_act(), nullptr);
