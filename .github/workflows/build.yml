@@ -25,21 +25,15 @@ jobs:
             unzip \
             ninja-build
 
-      - name: Download nRF5 SDK 17.1.0
-        run: |
-          set -euxo pipefail
-
-          if [ ! -d "nrf5_sdk" ]; then
-            echo "Downloading nRF5 SDK 17.1.0 (CI-safe URL)..."
-
-            curl -L \
-              https://codeload.github.com/NordicSemiconductor/nRF5_SDK/zip/refs/tags/v17.1.0 \
-              -o nrf5_sdk.zip
-
-            ls -lh nrf5_sdk.zip
-            unzip -q nrf5_sdk.zip
-            mv nRF5_SDK-17.1.0 nrf5_sdk
-          fi
+     - name: Download nRF5 SDK 17.1.0
+  run: |
+    set -euxo pipefail
+    if [ ! -d "nrf5_sdk" ]; then
+      echo "Downloading nRF5 SDK 17.1.0 (CI-safe URL)..."
+      curl -L https://codeload.github.com/NordicSemiconductor/nRF5_SDK/zip/v17.1.0 -o nrf5_sdk.zip
+      unzip -q nrf5_sdk.zip
+      mv nRF5_SDK-17.1.0 nrf5_sdk
+    fi
 
           echo "nRF5 SDK ready:"
           ls nrf5_sdk
