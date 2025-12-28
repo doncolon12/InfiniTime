@@ -24,16 +24,17 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(
     Controllers::HeartRateController& heartRateController,
     Controllers::MotionController& motionController,
     Controllers::FS& filesystem)
-  : currentDateTime{{}},
-    batteryIcon(false),
-    label_time_seconds{nullptr},
-    dateTimeController{dateTimeController},
+  : dateTimeController{dateTimeController},
     batteryController{batteryController},
     bleController{bleController},
     notificatioManager{notificatioManager},
     settingsController{settingsController},
     heartRateController{heartRateController},
-    motionController{motionController} {
+    motionController{motionController},
+    currentDateTime{{}},
+    batteryIcon(false),
+    label_time_seconds{nullptr} {
+
 
   lfs_file f = {};
   if (filesystem.FileOpen(&f, "/fonts/lv_font_dots_40.bin", LFS_O_RDONLY) >= 0) {
