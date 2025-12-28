@@ -7,11 +7,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential cmake git libsdl2-dev
+        run: sudo apt-get update && sudo apt-get install -y build-essential cmake git libsdl2-dev gcc-arm-none-eabi gdb-arm-none-eabi binutils-arm-none-eabi
+
       - name: Build Firmware
         run: |
           mkdir -p build
           cd build
-          cmake ..
+          cmake .. -DARM_NONE_EABI_TOOLCHAIN_PATH=/usr/bin -DCMAKE_BUILD_TYPE=Release
           make -j$(nproc)
