@@ -25,7 +25,7 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(Controllers::DateTime& dateTi
   : currentDateTime {{}},
     batteryIcon(false),
     // added new code: "label_time_seconds{nullptr}" to the initializer list
-    label_time_seconds{nullptr},   // ← added here
+    label_time_seconds{nullptr},   // ← added here, initialization
     dateTimeController {dateTimeController},
     batteryController {batteryController},
     bleController {bleController},
@@ -128,7 +128,7 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(Controllers::DateTime& dateTi
   lv_obj_add_style(line_date, LV_LINE_PART_MAIN, &style_line);
   lv_obj_align(line_date, nullptr, LV_ALIGN_IN_TOP_RIGHT, 0, 100);
 
-  label_time = lv_label_create(lv_scr_act(), nullptr);
+  
   lv_obj_set_style_local_text_color(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, color_text);
   lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, font_segment115);
   lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_CENTER, 0, 40);
