@@ -24,16 +24,29 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(
     Controllers::HeartRateController& heartRateController,
     Controllers::MotionController& motionController,
     Controllers::FS& filesystem)
-  : dateTimeController{dateTimeController},
-    batteryController{batteryController},
-    bleController{bleController},
-    notificatioManager{notificatioManager},
-    settingsController{settingsController},
-    heartRateController{heartRateController},
-    motionController{motionController},
-    currentDateTime{{}},
-    batteryIcon(false),
-    label_time_seconds{nullptr} {
+  : batteryPercentRemaining {},
+    powerPresent {},
+    bleState {},
+    bleRadioEnabled {},
+    currentDateTime {},
+    stepCount {},
+    heartbeat {},
+    heartbeatRunning {},
+    notificationState {},
+    currentDate {},
+    batteryIcon(batteryController),
+    dateTimeController(dateTimeController),
+    batteryController(batteryController),
+    bleController(bleController),
+    notificatioManager(notificatioManager),
+    settingsController(settingsController),
+    heartRateController(heartRateController),
+    motionController(motionController),
+    taskRefresh(nullptr),
+    font_dot40(nullptr),
+    font_segment40(nullptr),
+    font_segment115(nullptr) {
+
 
 
   lfs_file f = {};
