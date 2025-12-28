@@ -235,7 +235,12 @@ void WatchFaceCasioStyleG7710::Refresh() {
 
   // old code: currentDateTime = dateTimeController.CurrentDateTime();
   // new code:
-  currentDateTime = std::chrono::time_point_cast<std::chrono::seconds>(dateTimeController.CurrentDateTime());
+  // old code: currentDateTime = std::chrono::time_point_cast<std::chrono::seconds>(dateTimeController.CurrentDateTime());
+  // new code:
+  currentDateTime = Pinetime::Utility::DirtyValue<std::chrono::time_point<std::chrono::system_clock, std::chrono::minutes>>(
+  std::chrono::time_point_cast<std::chrono::minutes>(dateTimeController.CurrentDateTime())
+);
+
 
   if (currentDateTime.IsUpdated()) {
     uint8_t hour = dateTimeController.Hours();
