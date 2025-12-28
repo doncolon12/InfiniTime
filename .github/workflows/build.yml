@@ -1,54 +1,86 @@
-name: Build Firmware
+name: Build InfiniTime Firmware
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
+
+env:
+  ARM_NONE_EABI_TOOLCHAIN_PATH: /usr/bin
+  NRF5_SDK_VERSION: 17.1.0
+  NRF5_SDK_FOLDER: nrf5_sdk
 
 jobs:
   build-firmware:
     runs-on: ubuntu-latest
-    env:
-      NRF5_SDK_VERSION: "17.1.0"  # Change if you need a different version
-      NRF5_SDK_FOLDER: "nrf5_sdk" # Folder to store the SDK
-
     steps:
-      - name: Checkout repository
+      - name: Checkout source
         uses: actions/checkout@v3
         with:
           submodules: recursive
 
-      - name: Install dependencies
+      - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake git libsdl2-dev wget unzip gcc-arm-none-eabi
+          sudo apt-get install -y build-essential cmake git wget unzip
 
       - name: Download nRF5 SDK
         run: |
           if [ ! -d "${{ env.NRF5_SDK_FOLDER }}" ]; then
-            wget -q https://www.nordicsemi.com/-/media/Software-and-other-downloads/SDK/nRF5/SDK_v${{ env.NRF5_SDK_VERSION }}/nRF5_SDK_v${{ env.NRF5_SDK_VERSION }}_ddddd.zip -O nrf5_sdk.zip
+            wget -q https://www.nordicsemi.com/-/media/Software-and-other-downloads/SDK/nRF5/SDK_v${{ env.NRF5_SDK_VERSION }}/nRF5_SDK_v${{ env.NRF5_SDK_VERSION }}.zip -O nrf5_sdk.zip
             unzip nrf5_sdk.zip -d ${{ env.NRF5_SDK_FOLDER }}
           fi
 
+      - name: Create build folder
+        run: mkdir -p build
+
       - name: Configure firmware build
         run: |
-          mkdir -p build
           cd build
           cmake .. \
-            -DARM_NONE_EABI_TOOLCHAIN_PATH=/usr/bin \
-            -DNRF5_SDK_PATH=${{ github.workspace }}/${{ env.NRF5_SDK_FOLDER }}/nRF5_SDK_v${{ env.NRF5_SDK_VERSION }} \
-            -DCMAKE_BUILD_TYPE=Release
+            -DARM_NONE_EABI_TOOLCHAIN_PATH=${{ env.ARM_NONE_EABI_TOOLCHAIN_PATH }} \
+            -DNRF5_SDK_PATH=${{ github.workspace }}/${{ env.NRF5_SDK_FOLDER }}/NRF5_SDK_v${{ env.NRF5_SDK_VERSION }}
 
       - name: Build firmware
         run: |
           cd build
-          cmake --build . -- -j$(nproc)
+          make -j$(nproc)
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
         with:
           name: InfiniTime-Firmware
           path: build/src/pinetime-app-*.out
+
+  build-simulator:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install simulator dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsdl2-dev libpng-dev ninja-build npm
+
+      - name: Install lv_font_conv
+        run: npm i -g lv_font_conv@1.5.2
+
+      - name: Get InfiniSim
+        run: |
+          git clone https://github.com/InfiniTimeOrg/InfiniSim.git --depth 1 --branch main
+          git -C InfiniSim submodule update --init lv_drivers
+
+      - name: Build simulator
+        run: |
+          cmake -G Ninja -S InfiniSim -B build_lv_sim -DInfiniTime_DIR="${PWD}" -DBUILD_RESOURCES=OFF
+          cmake --build build_lv_sim
+
+      - name: Upload simulator executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: InfiniSim
+          path: build_lv_sim/infinisim
