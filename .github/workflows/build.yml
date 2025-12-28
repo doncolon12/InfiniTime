@@ -21,18 +21,26 @@ jobs:
             build-essential \
             cmake \
             git \
-            wget \
+            curl \
             unzip \
             ninja-build
 
       - name: Download nRF5 SDK 17.1.0
         run: |
+          set -euxo pipefail
+
           if [ ! -d "nrf5_sdk" ]; then
             echo "Downloading nRF5 SDK 17.1.0..."
-            wget -q https://github.com/NordicSemiconductor/nRF5_SDK/archive/refs/tags/v17.1.0.zip -O nrf5_sdk.zip
-            unzip -q nrf5_sdk.zip
+            curl -L \
+              https://github.com/NordicSemiconductor/nRF5_SDK/archive/refs/tags/v17.1.0.zip \
+              -o nrf5_sdk.zip
+
+            unzip nrf5_sdk.zip
             mv nRF5_SDK-17.1.0 nrf5_sdk
           fi
+
+          echo "nRF5 SDK contents:"
+          ls nrf5_sdk
 
       - name: Configure CMake
         run: |
