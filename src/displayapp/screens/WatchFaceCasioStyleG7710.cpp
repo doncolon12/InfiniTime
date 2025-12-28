@@ -222,10 +222,14 @@ void WatchFaceCasioStyleG7710::Refresh() {
     lv_label_set_text_static(notificationIcon, NotificationIcon::GetIcon(notificationState.Get()));
   }
 
-  currentDateTime = std::chrono::time_point_cast<std::chrono::minutes>(dateTimeController.CurrentDateTime());
+  // enable second-based updates (old code) currentDateTime = std::chrono::time_point_cast<std::chrono::minutes>(dateTimeController.CurrentDateTime());
+  // new code: this makes the watchface behave like the Analog face (updates every second)
+  currentDateTime = dateTimeController.CurrentDateTime();
   if (currentDateTime.IsUpdated()) {
     uint8_t hour = dateTimeController.Hours();
     uint8_t minute = dateTimeController.Minutes();
+    // new: add seconds to the time display
+    uint8_t second = dateTimeController.Seconds();
 
     if (settingsController.GetClockType() == Controllers::Settings::ClockType::H12) {
       char ampmChar[2] = "A";
@@ -238,9 +242,27 @@ void WatchFaceCasioStyleG7710::Refresh() {
         ampmChar[0] = 'P';
       }
       lv_label_set_text(label_time_ampm, ampmChar);
-      lv_label_set_text_fmt(label_time, "%2d:%02d", hour, minute);
-    } else {
-      lv_label_set_text_fmt(label_time, "%02d:%02d", hour, minute);
+      // // old code: lv_label_set_text_fmt(label_time, "%2d:%02d", hour, minute);
+      // // new code: update the label text (12-hour mode)
+      // lv_label_set_text_fmt(label_time, "%2d:%02d:%02d", hour, minute, second);
+    // } else {
+      // // old code: lv_label_set_text_fmt(label_time, "%02d:%02d", hour, minute);
+      // // new code: update the label text (24-hour mode)
+      // lv_label_set_text_fmt(label_time, "%02d:%02d:%02d", hour, minute, second);
+
+      // Update the main time label (HH:MM) with blinking colon
+      char timeBuf[6]; // "HH:MM" or "HH MM"
+      char colon = (second % 2 == 0) ? ':' : ' ';
+      
+      snprintf(timeBuf, sizeof(timeBuf),
+         "%02d%c%02d", hour, colon, minute);
+      
+      lv_label_set_text(label_time, timeBuf);
+      
+      // Update the seconds label (SS)
+      lv_label_set_text_fmt(label_time_seconds, "%02d", second);
+
+
     }
     lv_obj_realign(label_time);
 
@@ -254,14 +276,18 @@ void WatchFaceCasioStyleG7710::Refresh() {
       int dayOfYear = dateTimeController.DayOfYear();
       if (settingsController.GetClockType() == Controllers::Settings::ClockType::H24) {
         // 24h mode: ddmmyyyy, first DOW=Monday;
-        lv_label_set_text_fmt(label_date, "%3d-%2d", day, month);
+        // old code: lv_label_set_text_fmt(label_date, "%3d-%2d", day, month);
+        // new code: replace numeric month formatting (24-hour mode)
+        lv_label_set_text_fmt(label_date, "%02d %s", day, monthStr);
         weekNumberFormat = "%V"; // Replaced by the week number of the year (Monday as the first day of the week) as a decimal number
                                  // [01,53]. If the week containing 1 January has four or more days in the new year, then it is considered
                                  // week 1. Otherwise, it is the last week of the previous year, and the next week is week 1. Both January
                                  // 4th and the first Thursday of January are always in week 1. [ tm_year, tm_wday, tm_yday]
       } else {
         // 12h mode: mmddyyyy, first DOW=Sunday;
-        lv_label_set_text_fmt(label_date, "%3d-%2d", month, day);
+        // old code: lv_label_set_text_fmt(label_date, "%3d-%2d", month, day);
+        // new code: replace numeric month formatting (12-hour mode)
+        lv_label_set_text_fmt(label_date, "%s %02d", monthStr, day);
         weekNumberFormat = "%U"; // Replaced by the week number of the year as a decimal number [00,53]. The first Sunday of January is the
                                  // first day of week 1; days in the new year before this are in week 0. [ tm_year, tm_wday, tm_yday]
       }
@@ -269,6 +295,9 @@ void WatchFaceCasioStyleG7710::Refresh() {
       time_t ttTime =
         std::chrono::system_clock::to_time_t(std::chrono::time_point_cast<std::chrono::system_clock::duration>(currentDateTime.Get()));
       tm* tmTime = std::localtime(&ttTime);
+      // new code: "char monthStr[4];" and "strftime(monthStr, sizeof(monthStr), "%b", tmTime);" --> show abbreviated month name (using strftime, no lookup table)
+      char monthStr[4];
+      strftime(monthStr, sizeof(monthStr), "%b", tmTime);
 
       // TODO: When we start using C++20, use std::chrono::year::is_leap
       int daysInCurrentYear = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 366 : 365;
