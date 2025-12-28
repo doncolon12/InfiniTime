@@ -64,7 +64,8 @@ namespace Pinetime {
         lv_style_t style_line;
         lv_style_t style_border;
 
-        lv_obj_t* label_time;
+        lv_obj_t* label_time;                // main HH:MM
+        lv_obj_t* label_time_seconds;        // small SS to the right
         lv_obj_t* line_time;
         lv_obj_t* label_time_ampm;
         lv_obj_t* label_date;
