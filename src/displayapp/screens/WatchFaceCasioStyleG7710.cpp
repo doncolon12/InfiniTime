@@ -265,7 +265,7 @@ void WatchFaceCasioStyleG7710::Refresh() {
       strftime(monthStr, sizeof(monthStr), "%b", tmTime);
 
       uint16_t year = dateTimeController.Year();
-      uint8_t day = dateTimeController.Day();
+      // uint8_t day = dateTimeController.Day();
       int dayOfYear = dateTimeController.DayOfYear();
 
       int daysInCurrentYear = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 366 : 365;
