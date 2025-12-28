@@ -12,7 +12,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -27,9 +27,9 @@ jobs:
             nodejs \
             npm
 
-      - name: Install LVGL font converter
+      - name: Install lv_font_conv from GitHub
         run: |
-          npm install -g @lvgl/lv_font_conv
+          npm install -g lvgl/lv_font_conv
 
       - name: Download nRF5 SDK 17.1.0
         run: |
