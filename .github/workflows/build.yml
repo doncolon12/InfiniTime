@@ -25,6 +25,14 @@ jobs:
             gcc-arm-none-eabi \
             libnewlib-arm-none-eabi
 
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install lv_font_conv
+        run: npm install -g lv-font-converter
+
       - name: Download nRF5 SDK 17.1.0
         run: |
           set -euxo pipefail
@@ -32,7 +40,7 @@ jobs:
             echo "Downloading nRF5 SDK 17.1.0..."
             curl -L -o nrf5_sdk.zip https://nsscprodmedia.blob.core.windows.net/prod/software-and-other-downloads/sdks/nrf5/binaries/nrf5_sdk_17.1.0_ddde560.zip
             unzip -q nrf5_sdk.zip
-            mv nRF5_SDK_17.1.0_ddde560 nrf5_sdk
+            mv nrf5_sdk_17.1.0_ddde560 nrf5_sdk
           fi
 
       - name: Configure CMake
