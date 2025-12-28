@@ -30,7 +30,7 @@ jobs:
           set -euxo pipefail
           if [ ! -d "nrf5_sdk" ]; then
             echo "Downloading nRF5 SDK 17.1.0..."
-            curl -L https://codeload.github.com/NordicSemiconductor/nRF5_SDK/zip/refs/tags/v17.1.0 -o nrf5_sdk.zip
+            curl -L -A "Mozilla/5.0" -o nrf5_sdk.zip https://codeload.github.com/NordicSemiconductor/nRF5_SDK/zip/refs/tags/v17.1.0
             unzip -q nrf5_sdk.zip
             mv nRF5_SDK-17.1.0 nrf5_sdk
           fi
