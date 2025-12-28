@@ -34,7 +34,7 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(
     heartbeat{},
     heartbeatRunning{},
     notificationState{},
-    batteryIcon(false), // Corrected to match BatteryIcon(bool)
+    batteryIcon(false),
     label_time_seconds{nullptr},
     dateTimeController{dateTimeController},
     batteryController{batteryController},
@@ -43,7 +43,7 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(
     settingsController{settingsController},
     heartRateController{heartRateController},
     motionController{motionController} {
-
+  
   lfs_file f = {};
   if (filesystem.FileOpen(&f, "/fonts/lv_font_dots_40.bin", LFS_O_RDONLY) >= 0) {
     filesystem.FileClose(&f);
@@ -60,7 +60,7 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(
     font_segment115 = lv_font_load("F:/fonts/7segments_115.bin");
   }
 
-  // --- Battery and BLE icons ---
+  // Battery and BLE icons
   label_battery_value = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_align(label_battery_value, lv_scr_act(), LV_ALIGN_IN_TOP_RIGHT, 0, 0);
   lv_obj_set_style_local_text_color(label_battery_value, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, color_text);
@@ -85,7 +85,7 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(
   lv_label_set_text_static(notificationIcon, NotificationIcon::GetIcon(false));
   lv_obj_align(notificationIcon, bleIcon, LV_ALIGN_OUT_LEFT_MID, -5, 0);
 
-  // --- Day, week, and year labels ---
+  // Day, week, and year labels
   label_day_of_week = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_align(label_day_of_week, lv_scr_act(), LV_ALIGN_IN_TOP_LEFT, 10, 64);
   lv_obj_set_style_local_text_color(label_day_of_week, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, color_text);
@@ -104,7 +104,7 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(
   lv_obj_set_style_local_text_font(label_day_of_year, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, font_segment40);
   lv_label_set_text_static(label_day_of_year, "181-184");
 
-  // --- Styles ---
+  // Styles
   lv_style_init(&style_line);
   lv_style_set_line_width(&style_line, LV_STATE_DEFAULT, 2);
   lv_style_set_line_color(&style_line, LV_STATE_DEFAULT, color_text);
@@ -115,7 +115,7 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(
   lv_style_set_line_color(&style_border, LV_STATE_DEFAULT, color_text);
   lv_style_set_line_rounded(&style_border, LV_STATE_DEFAULT, true);
 
-  // --- Lines ---
+  // Lines
   line_icons = lv_line_create(lv_scr_act(), nullptr);
   lv_line_set_points(line_icons, line_icons_points, 3);
   lv_obj_add_style(line_icons, LV_LINE_PART_MAIN, &style_line);
@@ -148,7 +148,7 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(
   lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, font_segment115);
   lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_CENTER, 0, 40);
 
-  // --- Small seconds (SS) ---
+  // --- Small seconds (SS) --- bottom-aligned with HH:MM
   label_time_seconds = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_color(label_time_seconds, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, color_text);
   lv_obj_set_style_local_text_font(label_time_seconds, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, font_segment40);
@@ -164,7 +164,7 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(
   lv_label_set_text_static(label_time_ampm, "");
   lv_obj_align(label_time_ampm, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 5, -5);
 
-  // --- Background label ---
+  // Background label
   backgroundLabel = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_click(backgroundLabel, true);
   lv_label_set_long_mode(backgroundLabel, LV_LABEL_LONG_CROP);
@@ -172,7 +172,7 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(
   lv_obj_set_pos(backgroundLabel, 0, 0);
   lv_label_set_text_static(backgroundLabel, "");
 
-  // --- Heartbeat & step counters ---
+  // Heartbeat & step counters
   heartbeatIcon = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_text_static(heartbeatIcon, Symbols::heartBeat);
   lv_obj_set_style_local_text_color(heartbeatIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, color_text);
@@ -193,7 +193,6 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(
   lv_label_set_text_static(stepIcon, Symbols::shoe);
   lv_obj_align(stepIcon, stepValue, LV_ALIGN_OUT_LEFT_MID, -5, 0);
 
-  // --- Refresh task ---
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
   Refresh();
 }
@@ -211,12 +210,105 @@ WatchFaceCasioStyleG7710::~WatchFaceCasioStyleG7710() {
   lv_obj_clean(lv_scr_act());
 }
 
-// Refresh function
+// Refresh function (update all labels)
 void WatchFaceCasioStyleG7710::Refresh() {
-  // ... your existing Refresh() code remains unchanged ...
+  powerPresent = batteryController.IsPowerPresent();
+  if (powerPresent.IsUpdated()) {
+    lv_label_set_text_static(batteryPlug, BatteryIcon::GetPlugIcon(powerPresent.Get()));
+  }
+
+  batteryPercentRemaining = batteryController.PercentRemaining();
+  if (batteryPercentRemaining.IsUpdated()) {
+    auto batteryPercent = batteryPercentRemaining.Get();
+    batteryIcon.SetBatteryPercentage(batteryPercent);
+    lv_label_set_text_fmt(label_battery_value, "%d%%", batteryPercent);
+  }
+
+  bleState = bleController.IsConnected();
+  bleRadioEnabled = bleController.IsRadioEnabled();
+  if (bleState.IsUpdated() || bleRadioEnabled.IsUpdated()) {
+    lv_label_set_text_static(bleIcon, BleIcon::GetIcon(bleState.Get()));
+  }
+
+  lv_obj_realign(label_battery_value);
+  lv_obj_realign(batteryIcon.GetObject());
+  lv_obj_realign(batteryPlug);
+  lv_obj_realign(bleIcon);
+  lv_obj_realign(notificationIcon);
+
+  notificationState = notificatioManager.AreNewNotificationsAvailable();
+  if (notificationState.IsUpdated()) {
+    lv_label_set_text_static(notificationIcon, NotificationIcon::GetIcon(notificationState.Get()));
+  }
+
+  currentDateTime = Pinetime::Utility::DirtyValue<std::chrono::time_point<std::chrono::system_clock, std::chrono::minutes>>(
+    std::chrono::time_point_cast<std::chrono::minutes>(dateTimeController.CurrentDateTime())
+  );
+
+  if (currentDateTime.IsUpdated()) {
+    uint8_t hour = dateTimeController.Hours();
+    uint8_t minute = dateTimeController.Minutes();
+    uint8_t second = dateTimeController.Seconds();
+
+    char timeBuf[6]; // HH:MM with blinking colon
+    char colon = (second % 2 == 0) ? ':' : ' ';
+    snprintf(timeBuf, sizeof(timeBuf), "%02d%c%02d", hour, colon, minute);
+    lv_label_set_text(label_time, timeBuf);
+    lv_label_set_text_fmt(label_time_seconds, "%02d", second);
+
+    lv_obj_realign(label_time);
+
+    currentDate = std::chrono::time_point_cast<std::chrono::days>(currentDateTime.Get());
+    if (currentDate.IsUpdated()) {
+      time_t ttTime = std::chrono::system_clock::to_time_t(
+        std::chrono::time_point_cast<std::chrono::system_clock::duration>(currentDateTime.Get()));
+      tm* tmTime = std::localtime(&ttTime);
+
+      uint16_t year = dateTimeController.Year();
+      int dayOfYear = dateTimeController.DayOfYear();
+
+      int daysInCurrentYear = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 366 : 365;
+      uint16_t daysTillEndOfYearNumber = daysInCurrentYear - dayOfYear;
+
+      char buffer[8];
+      const char* weekNumberFormat = (settingsController.GetClockType() == Controllers::Settings::ClockType::H24) ? "%V" : "%U";
+      strftime(buffer, 8, weekNumberFormat, tmTime);
+      uint8_t weekNumber = static_cast<uint8_t>(atoi(buffer));
+
+      lv_label_set_text_fmt(label_day_of_week, "%s", dateTimeController.DayOfWeekShortToString());
+      lv_label_set_text_fmt(label_day_of_year, "%3d-%3d", dayOfYear, daysTillEndOfYearNumber);
+      lv_label_set_text_fmt(label_week_number, "WK%02d", weekNumber);
+
+      lv_obj_realign(label_day_of_week);
+      lv_obj_realign(label_day_of_year);
+      lv_obj_realign(label_week_number);
+      lv_obj_realign(label_date);
+    }
+  }
+
+  heartbeat = heartRateController.HeartRate();
+  heartbeatRunning = heartRateController.State() != Controllers::HeartRateController::States::Stopped;
+  if (heartbeat.IsUpdated() || heartbeatRunning.IsUpdated()) {
+    if (heartbeatRunning.Get()) {
+      lv_obj_set_style_local_text_color(heartbeatIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, color_text);
+      lv_label_set_text_fmt(heartbeatValue, "%d", heartbeat.Get());
+    } else {
+      lv_obj_set_style_local_text_color(heartbeatIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x1B1B1B));
+      lv_label_set_text_static(heartbeatValue, "");
+    }
+
+    lv_obj_realign(heartbeatIcon);
+    lv_obj_realign(heartbeatValue);
+  }
+
+  stepCount = motionController.NbSteps();
+  if (stepCount.IsUpdated()) {
+    lv_label_set_text_fmt(stepValue, "%lu", stepCount.Get());
+    lv_obj_realign(stepValue);
+    lv_obj_realign(stepIcon);
+  }
 }
 
-// Availability check
 bool WatchFaceCasioStyleG7710::IsAvailable(Pinetime::Controllers::FS& filesystem) {
   lfs_file file = {};
   if (filesystem.FileOpen(&file, "/fonts/lv_font_dots_40.bin", LFS_O_RDONLY) < 0) return false;
