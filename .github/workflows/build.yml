@@ -23,32 +23,32 @@ jobs:
             curl \
             unzip \
             gcc-arm-none-eabi \
-            libnewlib-arm-none-eabi \
-            nodejs \
-            npm
+            libnewlib-arm-none-eabi
 
-      - name: Install lv_font_conv from GitHub
-        run: |
-          npm install -g lvgl/lv_font_conv
-
-      - name: Download nRF5 SDK 17.1.0
+      - name: Download nRF5 SDK 17.1.0 (official Nordic binary)
         run: |
           set -euxo pipefail
+
           if [ ! -d "nrf5_sdk" ]; then
             echo "Downloading nRF5 SDK 17.1.0..."
-            curl -L -o nrf5_sdk.zip https://nsscprodmedia.blob.core.windows.net/prod/software-and-other-downloads/sdks/nrf5/binaries/nrf5_sdk_17.1.0_ddde560.zip
+            curl -L \
+              https://nsscprodmedia.blob.core.windows.net/prod/software-and-other-downloads/sdks/nrf5/binaries/nrf5_sdk_17.1.0_ddde560.zip \
+              -o nrf5_sdk.zip
+
             unzip -q nrf5_sdk.zip
-            mv nRF5_SDK-17.1.0 nrf5_sdk
+            mv nRF5_SDK_17.1.0_ddde560 nrf5_sdk
           fi
 
-      - name: Configure CMake
+      - name: Configure CMake (disable font generation)
         run: |
           mkdir -p build
           cd build
+
           cmake .. \
             -GNinja \
             -DARM_NONE_EABI_TOOLCHAIN_PATH=/usr \
-            -DNRF5_SDK_PATH=$GITHUB_WORKSPACE/nrf5_sdk
+            -DNRF5_SDK_PATH=$GITHUB_WORKSPACE/nrf5_sdk \
+            -DBUILD_FONTS=OFF
 
       - name: Build firmware
         run: |
