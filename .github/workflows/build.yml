@@ -9,10 +9,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository (with submodules)
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Install system dependencies
         run: |
@@ -29,38 +27,28 @@ jobs:
             python3 \
             patch
 
-      - name: Install Node.js 24 (required for lv_font_conv)
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-
-      - name: Install lv_font_conv
-        run: |
-          npm install -g lvgl/lv_font_conv
-
-      - name: Download nRF5 SDK 17.1.0 (official Nordic binary)
+      - name: Download nRF5 SDK 17.1.0 (official Nordic URL)
         run: |
           set -euxo pipefail
-
           if [ ! -d "nrf5_sdk" ]; then
             echo "Downloading nRF5 SDK 17.1.0..."
             curl -L \
               https://nsscprodmedia.blob.core.windows.net/prod/software-and-other-downloads/sdks/nrf5/binaries/nrf5_sdk_17.1.0_ddde560.zip \
               -o nrf5_sdk.zip
-
             unzip -q nrf5_sdk.zip
-            mv nRF5_SDK_17.1.0_ddde560 nrf5_sdk
+            mv nrf5_sdk_17.1.0_ddde560 nrf5_sdk
           fi
 
-      - name: Configure CMake
+      - name: Configure CMake (fonts pre-generated, no lv_font_conv)
         run: |
           mkdir -p build
           cd build
-
           cmake .. \
             -GNinja \
             -DARM_NONE_EABI_TOOLCHAIN_PATH=/usr \
-            -DNRF5_SDK_PATH=$GITHUB_WORKSPACE/nrf5_sdk
+            -DNRF5_SDK_PATH=$GITHUB_WORKSPACE/nrf5_sdk \
+            -DLV_FONT_CONV=/usr/bin/true \
+            -DBUILD_FONTS=OFF
 
       - name: Build firmware
         run: |
