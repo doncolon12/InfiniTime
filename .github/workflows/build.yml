@@ -25,7 +25,18 @@ jobs:
             curl \
             unzip \
             gcc-arm-none-eabi \
-            libnewlib-arm-none-eabi
+            libnewlib-arm-none-eabi \
+            python3 \
+            patch
+
+      - name: Install Node.js 24 (required for lv_font_conv)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install lv_font_conv
+        run: |
+          npm install -g lvgl/lv_font_conv
 
       - name: Download nRF5 SDK 17.1.0 (official Nordic binary)
         run: |
@@ -41,7 +52,7 @@ jobs:
             mv nRF5_SDK_17.1.0_ddde560 nrf5_sdk
           fi
 
-      - name: Configure CMake (fonts disabled, CI-safe)
+      - name: Configure CMake
         run: |
           mkdir -p build
           cd build
@@ -49,9 +60,7 @@ jobs:
           cmake .. \
             -GNinja \
             -DARM_NONE_EABI_TOOLCHAIN_PATH=/usr \
-            -DNRF5_SDK_PATH=$GITHUB_WORKSPACE/nrf5_sdk \
-            -DBUILD_FONTS=OFF \
-            -DLV_FONT_CONV=/usr/bin/true
+            -DNRF5_SDK_PATH=$GITHUB_WORKSPACE/nrf5_sdk
 
       - name: Build firmware
         run: |
