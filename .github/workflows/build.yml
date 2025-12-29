@@ -9,8 +9,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repository (with submodules)
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install system dependencies
         run: |
@@ -39,7 +41,7 @@ jobs:
             mv nRF5_SDK_17.1.0_ddde560 nrf5_sdk
           fi
 
-      - name: Configure CMake (disable font conversion explicitly)
+      - name: Configure CMake (fonts disabled, CI-safe)
         run: |
           mkdir -p build
           cd build
@@ -48,7 +50,8 @@ jobs:
             -GNinja \
             -DARM_NONE_EABI_TOOLCHAIN_PATH=/usr \
             -DNRF5_SDK_PATH=$GITHUB_WORKSPACE/nrf5_sdk \
-            -DLV_FONT_CONV=LV_FONT_CONV-NOTFOUND
+            -DBUILD_FONTS=OFF \
+            -DLV_FONT_CONV=/usr/bin/true
 
       - name: Build firmware
         run: |
