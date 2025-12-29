@@ -39,7 +39,7 @@ jobs:
             mv nRF5_SDK_17.1.0_ddde560 nrf5_sdk
           fi
 
-      - name: Configure CMake (disable font generation)
+      - name: Configure CMake (fonts disabled, CI-safe)
         run: |
           mkdir -p build
           cd build
@@ -48,7 +48,8 @@ jobs:
             -GNinja \
             -DARM_NONE_EABI_TOOLCHAIN_PATH=/usr \
             -DNRF5_SDK_PATH=$GITHUB_WORKSPACE/nrf5_sdk \
-            -DBUILD_FONTS=OFF
+            -DBUILD_FONTS=OFF \
+            -DLV_FONT_CONV=/usr/bin/true
 
       - name: Build firmware
         run: |
